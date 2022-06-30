@@ -1,0 +1,38 @@
+- hosts: localhost
+  vars:
+    - ip_mgmt: "192.168.100.20"
+    - ip_data: "192.168.101.20"
+    - ssh_user: "root"
+    - ssh_password: "complexpassword"
+
+  tasks:
+    - name: Check if the IPs are pingable
+      shell: |
+        if ping -c 10 {{ item }} &> /dev/null
+        then
+          echo "{{ item }} is pingable"
+        else
+          echo "{{ item }} is not pingable"
+          exit 1
+        fi
+      args:
+        executable: /bin/bash
+      loop:
+        - "{{ ip_mgmt }}"
+        - "{{ ip_data }}"
+
+    - name: Check if we can SSH to the IPs
+      shell: |
+        ssh-keygen -f "/root/.ssh/known_hosts" -R "{{ item }}" &> /dev/null
+        if sshpass -p {{ ssh_password }} ssh -o StrictHostKeyChecking=no {{ ssh_user }}@{{ item }} exit &> /dev/null
+        then
+          echo "SSH to {{ item }} is successful"
+        else
+          echo "SSH to {{ item }} failed"
+          exit 1
+        fi
+      args:
+        executable: /bin/bash
+      loop:
+        - "{{ ip_mgmt }}"
+        - "{{ ip_data }}"
