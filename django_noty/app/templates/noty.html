@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css">
+  https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js
+</head>
+
+<body>
+
+    var msg_levels = { 20: 'info', 25: 'success', 30: 'warning', 40: 'error' };
+    {% if messages %}
+    {% for msg in messages %}
+    new Noty({
+        type: msg_levels['{{msg.level}}'],
+        text: '{{msg}}',
+        timeout: '5000',
+        theme: 'metroui'
+    }).show();
+    {% endfor %}
+    {% endif %}
+
+</body>
+</html>
