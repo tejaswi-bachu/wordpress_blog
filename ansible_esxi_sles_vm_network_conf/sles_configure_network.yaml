@@ -1,0 +1,48 @@
+---
+
+- hosts: localhost
+  vars:
+    - network_iface: "eth0"
+    - network_ip_addr: "192.168.10.20"
+    - network_subnet: "255.255.255.0"
+    - network_default_gateway: "192.168.10.1"
+    - dns_domain: "somedomain"
+    - dns_server_ip: "192.168.101.100"
+    - vm_name: "slesvm"
+    - vm_user: "root"
+    - vm_password: "vmpassword"
+    - esxi_ip: "192.168.10.50"
+    - esxi_username: "root"
+    - esxi_password: "password"
+    
+  tasks:
+    - name: Create template to configure network in SLES VM
+      template:
+        src: "sles_network_config.j2"
+        dest: "/tmp/sles_network_config.sh"
+    
+    - name: Copy the network configuration shell script to SLES VM
+      vmware_guest_file_operation:
+        hostname: "{{ esxi_ip }}"
+        username: "{{ esxi_username }}"
+        password: "{{ esxi_password }}"
+        vm_id: "{{ vm_name }}"
+        vm_username: "{{ vm_user }}"
+        vm_password: "{{ vm_password }}"
+        copy:
+          src: "/tmp/sles_network_config.sh"
+          dest: "/home/sles_network_config.sh"
+        validate_certs: no
+        
+    - name: Execute the network configuration shell script in SLES VM
+      vmware_vm_shell:
+        hostname: "{{ esxi_ip }}"
+        username: "{{ esxi_username }}"
+        password: "{{ esxi_password }}"
+        vm_id: "{{ vm_name }}"
+        vm_username: "{{ vm_user }}"
+        vm_password: "{{ vm_password }}"
+        vm_shell: "/usr/bin/bash"
+        vm_shell_args: "/home/sles_network_config.sh"
+        wait_for_process: yes
+        validate_certs: no

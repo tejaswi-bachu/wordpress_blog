@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cat <<EOT > /etc/sysconfig/network/ifcfg-{{ network_iface }}
+BOOTPROTO='static'
+STARTMODE='auto'
+IPADDR='{{ (network_ip_addr + '/' + network_subnet) | ipsubnet }}'
+NAME='{{ network_iface }}'
+ZONE=''
+EOT
+
+sed -i 's/NETCONFIG_DNS_STATIC_SEARCHLIST.*/NETCONFIG_DNS_STATIC_SEARCHLIST="{{ dns_domain }}"/;s/NETCONFIG_DNS_STATIC_SERVERS.*/NETCONFIG_DNS_STATIC_SERVERS="{{ dns_server_ip }}"/' /etc/sysconfig/network/config
+
+echo default {{ network_default_gateway }} - {{ network_iface }} > /etc/sysconfig/network/routes
+
+service network restart
+service sshd restart
+
+rm -f /home/sles_network_config.sh
