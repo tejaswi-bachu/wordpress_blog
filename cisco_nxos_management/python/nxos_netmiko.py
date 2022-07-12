@@ -1,5 +1,3 @@
-import netmiko
-
 from netmiko import ConnectHandler
 
 cisco_nxos_switch = {
@@ -25,7 +23,12 @@ def remove_interface_ip(interface, ip_addr):
     print(output)
 
 
+"""
+Example function calls
+
 interface = "Eth1/20"
 ip_addr = "172.168.10.20/24"
 
+configure_interface_ip(interface, ip_addr)
 remove_interface_ip(interface, ip_addr)
+"""
