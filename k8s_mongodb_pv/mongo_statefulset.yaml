@@ -24,8 +24,8 @@ spec:
       labels:
         role: mongo
         environment: test
-  spec: null
-  terminationGracePeriodSeconds: 10
+  spec:
+    terminationGracePeriodSeconds: 10
   volumes:
     - name: mongo-pv-storage
       persistentVolumeClaim:
