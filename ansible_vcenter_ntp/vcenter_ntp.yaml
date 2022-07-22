@@ -1,0 +1,72 @@
+- hosts: localhost
+  vars:
+    - vcenter_ip: "192.168.101.10"
+    - vcenter_username: "administrator@vsphere.local"
+    - vcenter_password: "password"
+    - ntp_servers:
+        - "192.168.200.20"
+  tasks:
+    - name: Get a API key
+      ansible.builtin.uri:
+        url: "https://{{ vcenter_ip }}/rest/com/vmware/cis/session"
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        method: POST
+        force_basic_auth: yes
+        status_code: 200
+        return_content: yes
+        validate_certs: no
+      register: api_token
+
+    - debug:
+        msg: "{{ api_token.json.value }}"
+
+    - name: Get NTP servers
+      ansible.builtin.uri:
+        url: "https://{{ vcenter_ip }}/api/appliance/ntp"
+        method: GET
+        status_code: 200
+        validate_certs: no
+        headers:
+          vmware-api-session-id: "{{ api_token.json.value }}"
+        return_content: yes
+      register: current_ntp_servers
+
+    - debug:
+        msg: "{{ current_ntp_servers.json }}"
+
+    - name: Set NTP servers
+      ansible.builtin.uri:
+        url: "https://{{ vcenter_ip }}/api/appliance/ntp"
+        method: PUT
+        status_code: 204
+        validate_certs: no
+        headers:
+          vmware-api-session-id: "{{ api_token.json.value }}"
+          Content-Type: application/json
+        return_content: yes
+        body_format: json
+        body:
+          servers: "{{ ntp_servers }}"
+      register: set_ntp_servers
+
+    - debug:
+        msg: "{{ set_ntp_servers }}"
+
+    - name: Test NTP servers
+      ansible.builtin.uri:
+        url: "https://{{ vcenter_ip }}/api/appliance/ntp?action=test"
+        method: POST
+        status_code: 200
+        validate_certs: no
+        headers:
+          vmware-api-session-id: "{{ api_token.json.value }}"
+          Content-Type: application/json
+        return_content: yes
+        body_format: json
+        body:
+          servers: "{{ ntp_servers }}"
+      register: test_ntp_servers
+
+    - debug:
+        msg: "{{ test_ntp_servers }}"
